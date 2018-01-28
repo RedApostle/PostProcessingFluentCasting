@@ -11,13 +11,13 @@ int main(){
 	scanf("%d",&jump);
     FILE *fp,*fout;
     for(i=jump;i<=n;i+=jump){
-        sprintf(sn,"FFF-%04d.1-4-02060",i);
+        sprintf(sn,"FFF-%04d.1",i);
         fp=fopen(sn,"r");
         char out[30];
         sprintf(out,"%d",i);
         fout=fopen(out,"w");
-        char buffer[200];
-	    fgets(buffer,200,fp);
+        char buffer[2000];
+	    fgets(buffer,2000,fp);
         while(!feof(fp)){
             char temp=fgetc(fp);
             if(temp!=' '&&temp!=EOF)

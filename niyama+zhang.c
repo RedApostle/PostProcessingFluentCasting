@@ -71,41 +71,79 @@ int main(){
 	fp=fopen(sn,"r");
     printf("hey\n");
     for(i=0;i<lines-1;i++){
-        fscanf(fp,"%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",&node,&px[i],&py[i],&pz[i],&ptx[i],&pty[i],&ptz[i],&plf[i],&pvf[i],&pt[i]);
+        double h;
+        fscanf(fp,"%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",&node,&px[i],&py[i],&pz[i],&pt[i],&h,&ptx[i],&pty[i],&ptz[i],&pvf[i],&plf[i],&h);
         if(pt[i]<=1885.0&&equals(pvf[i])){
             niyama[i]=3.1e05;
         }
     }
     fclose(fp);
-    /*
-    sprintf(sn,"%d",jump*2);
-    fp=fopen(sn,"r");
-    printf("hey\n");
-    for(i=0;i<lines-1;i++){
-        fscanf(fp,"%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf",&node,&x[i],&y[i],&z[i],&t[i],&tx[i],&ty[i],&tz[i]);
-    }
-    fclose(fp);
-    */
     for(i=jump*2;i<n;i+=jump){
         //reading latest profiles
         sprintf(sn,"%d",i);
         fopen(sn,"r");
         for(j=0;j<lines-1;j++){
-            fscanf(fp,"%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",&node,&fx[j],&fy[j],&fz[j],&ftx[j],&fty[j],&ftz[j],&flf[j],&fvf[j],&ft[j]);
+            double h;
+            fscanf(fp,"%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",&node,&fx[j],&fy[j],&fz[j],&ft[j],&h,&ftx[j],&fty[j],&ftz[j],&fvf[j],&flf[j],&h);
+            if(ft[j]<=1885.0&&pt[j]>1885.0){
+                double tg=sqrt((ftx[j]+ptx[j])*(ftx[j]+ptx[j])/4+(fty[j]+pty[j])*(fty[j]+pty[j])/4+(ftz[j]+ptz[j])*(ftz[j]+ptz[j])/4);
+                niyama[j]=tg/sqrt(abs(ft[j]-pt[j])/(i*dt));
+            }
+            if(ft[j]<=1877.0&&pt[j]>=1877.0){
+                fls[j]=i*dt;
+            }
+            if(ft[j]<=1885.0&&pt[j]>1885.0){
+                double tg=sqrt((ftx[j]+ptx[j])*(ftx[j]+ptx[j])/4+(fty[j]+pty[j])*(fty[j]+pty[j])/4+(ftz[j]+ptz[j])*(ftz[j]+ptz[j])/4);
+                zhang[j]=(fls[j]/tg)*(((1-((pt[j]-1877)/56))-(1-((ft[j]-1877)/56)))/(i*dt))*sqrt(abs(ft[j]-pt[j])/(dt*i));
+            }
+        }
+        
+        //update data
+        for(j=0;j<lines-1;j++){
+             px[j]=fx[j];
+             py[j]=fy[j];
+             pz[j]=fz[j];
+             pt[j]=ft[j];
+             ptx[j]=ftx[j];
+             pty[j]=fty[j];
+             ptz[j]=ftz[j];
+             pvf[j]=fvf[j];
+         }
+        fclose(fp);
+    }
+
+    fp=fopen(sn,"r");
+    printf("hey\n");
+    for(i=0;i<lines-1;i++){
+        double h;
+        fscanf(fp,"%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",&node,&px[i],&py[i],&pz[i],&pt[i],&h,&ptx[i],&pty[i],&ptz[i],&pvf[i],&plf[i],&h);
+        if(pt[i]<=1885.0&&equals(pvf[i])){
+            niyama[i]=3.1e05;
+        }
+    }
+    fclose(fp);
+    for(i=jump*2;i<n;i+=jump){
+        //reading latest profiles
+        sprintf(sn,"%d",i);
+        fopen(sn,"r");
+        for(j=0;j<lines-1;j++){
+            double h;
+            fscanf(fp,"%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",&node,&fx[j],&fy[j],&fz[j],&ft[j],&h,&ftx[j],&fty[j],&ftz[j],&fvf[j],&flf[j],&h);
+            //printf("%d %d %.4f %.4f %.4f\n",i,j,ptx[j],pty[j],ptz[j]);
             //if solidifying, calculate niyama parameter
             //printf("pt = %lf\n",pt[i]);
            // printf("ft = %lf\n",ft[j]);
-            if(ft[j]<=1885.0&&pt[j]>1885.0&&equals(fvf[j])){
+            if(ft[j]<=1885.0&&pt[j]>1885.0){
                 double tg=sqrt((ftx[j]+ptx[j])*(ftx[j]+ptx[j])/4+(fty[j]+pty[j])*(fty[j]+pty[j])/4+(ftz[j]+ptz[j])*(ftz[j]+ptz[j])/4);
                 niyama[j]=tg/sqrt(abs(ft[j]-pt[j])/(i*dt));
                 //printf("%.6f",niyama[j]);
             }
             //printf("%.2f %.2f\n",pt[i],ft[i]);
-            if(ft[j]<=1877.0&&pt[j]>=1877.0&&equals(fvf[j])){
+            if(ft[j]<=1877.0&&pt[j]>=1877.0){
                 fls[j]=i*dt;
-                printf("fls = %lf,at i=%0.4d\n",fls[j],i);
+                //printf("fls = %lf,at i=%0.4d\n",fls[j],i);
             }
-            if(equals(fvf[j])&&ft[j]<=1885.0&&pt[j]>1885.0){
+            if(ft[j]<=1885.0&&pt[j]>1885.0){
                 double tg=sqrt((ftx[j]+ptx[j])*(ftx[j]+ptx[j])/4+(fty[j]+pty[j])*(fty[j]+pty[j])/4+(ftz[j]+ptz[j])*(ftz[j]+ptz[j])/4);
                 zhang[j]=(fls[j]/tg)*(((1-((pt[j]-1877)/56))-(1-((ft[j]-1877)/56)))/(i*dt))*sqrt(abs(ft[j]-pt[j])/(dt*i));
               //  sprintf(sn,"proof%0.4d.csv",i);
@@ -115,6 +153,7 @@ int main(){
                // fclose(fp);
             }
         }
+        
         //update data
         for(j=0;j<lines-1;j++){
              px[j]=fx[j];
